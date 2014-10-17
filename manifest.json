@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  
+  "name" : "Tiago CSM Extension",
+  "version" : "2.0.0",
+  "description" : "Adicionar varias mini-funcoes ao csm.",
+
+  "icons": { "128": "icon128.png" },
+  
+  "content_scripts" : [
+    {
+      "matches" : ["http://www.cs-manager.com/csm/*"],
+      "js" : ["myjquery.js","functions.js"]
+    }]
+
+  
+}
