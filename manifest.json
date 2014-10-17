@@ -1,15 +1,16 @@
 {
   "manifest_version": 2,
   
-  "name" : "Tiago CSM Extension",
-  "version" : "1.0.0",
+  "name" : "Bidarr CSM Extension",
+  "version" : "1.0.1",
+
   "description" : "Adicionar varias mini-funcoes ao csm.",
 
   "icons": { "128": "icon128.png" },
   
   "content_scripts" : [
     {
-      "matches" : ["http://www.cs-manager.com/csm/*"],
+      "matches" : ["http://www.cs-manager.com/*"],
       "js" : ["myjquery.js","functions.js"]
     }]
 
