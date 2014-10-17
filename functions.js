@@ -2,28 +2,44 @@ var bidarr = {
 	season_day: null,
 
 	init: function() {
-		bidarr.season_day = $("#date-day").find('span').html();
 
-		//Get simple bets configs
-		bidarr.options.bet = localStorage[bidarr.bets.simple.localStorageVar];
-		if (!bidarr.options.bet) {
-			localStorage[bidarr.bets.simple.localStorageVar] = "0";
-			bidarr.options.bet = "0";
+		//Get autoLogin config
+		bidarr.options.autoLogin = localStorage[bidarr.login.localStorageVar];
+		if (!bidarr.options.autoLogin) {
+			localStorage[bidarr.login.localStorageVar] = "0";
+			bidarr.options.autoLogin = "0";
 		} 
 
-		//Get s9 bets configs
-		bidarr.options.s9 = localStorage[bidarr.bets.s9.localStorageVar];
-		if (!bidarr.options.s9) {
-			localStorage[bidarr.bets.s9.localStorageVar] = "0";
-			bidarr.options.s9 = "0";
-		} 
+		if (!bidarr.login.isLoginPage()) {
+			bidarr.season_day = $("#date-day").find('span').html();
 
-		//Prepare DOM elements
-		if (document.URL.match(/http:\/\/www\.cs-manager\.com\/csm\/\?p=clan_info&s=edit/)) {
-			$("#cp-settings").prepend(bidarr.createMenu());
+			//Get simple bets configs
+			bidarr.options.bet = localStorage[bidarr.bets.simple.localStorageVar];
+			if (!bidarr.options.bet) {
+				localStorage[bidarr.bets.simple.localStorageVar] = "0";
+				bidarr.options.bet = "0";
+			} 
+
+			//Get s9 bets configs
+			bidarr.options.s9 = localStorage[bidarr.bets.s9.localStorageVar];
+			if (!bidarr.options.s9) {
+				localStorage[bidarr.bets.s9.localStorageVar] = "0";
+				bidarr.options.s9 = "0";
+			} 
+
+			//Prepare DOM elements
+			if (document.URL.match(/http:\/\/www\.cs-manager\.com\/csm\/\?p=clan_info&s=edit/)) {
+				$("#cp-settings").prepend(bidarr.createMenu());
+			}
+
+			$("#shortcuts").find('ul').prepend('<li id="tiagop"> &raquo; <a href="/csm/?p=clan_info&amp;s=edit">Bidarr Settings</a></li>');
+		} else {
+			if (bidarr.options.autoLogin == "1") {
+				bidarr.login.init();
+			} else {
+				bidarr.login.clearCredentials();
+			}
 		}
-
-		$("#shortcuts").find('ul').prepend('<li id="tiagop"> &raquo; <a href="/csm/?p=clan_info&amp;s=edit">Bidarr Settings</a></li>');
 	},
 
 	createMenu: function() {
@@ -31,10 +47,17 @@ var bidarr = {
 				 + '<h3><a class="plus-more">+</a> Bidarr Plugin</h3>'
 				 + '</span><form style="display: none;">'
 
+				 + 'Auto Login: <input type="checkbox"' + ((bidarr.options.autoLogin == "1") ? " checked=checked " : " ")
+				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.login.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.login.localStorageVar + '\'] = 0;">'
+
+				 + '<br>'
+
 				 + 'S9 Reminder: <input type="checkbox"' + ((bidarr.options.s9 == "1") ? " checked=checked " : " ")
 				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.bets.s9.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.bets.s9.localStorageVar + '\'] = 0;">'
 
-				 + '<br>Simple Bets Reminder: <input type="checkbox"' + ((bidarr.options.bet == "1") ? " checked=checked " : " ")
+				 + '<br>'
+
+				 + 'Simple Bets Reminder: <input type="checkbox"' + ((bidarr.options.bet == "1") ? " checked=checked " : " ")
 				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.bets.simple.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.bets.simple.localStorageVar + '\'] = 0;">' 
 
 				 + '</form></div><hr>';
@@ -44,7 +67,105 @@ var bidarr = {
 
 	options: {
 		bet: null,
-		s9: null
+		s9: null,
+		autoLogin: null
+	},
+
+
+	// Auto login feature
+	login: {
+		localStorageVar: "bidarr_csmp_autoLogin",
+		bidarrUsername: "",
+		bidarrPassword: "",
+
+		isLoginPage: function() {
+			if ($("#login-form").length == 1) {
+				return true;
+			} else {
+				return false;
+			}
+		},
+
+		init: function() {
+			if (bidarr.login.credentialsStored()) {
+				bidarr.login.tryLogin();
+			}
+		},
+
+		tryLogin: function() {
+			bidarr.url.toArray(window.location.href);
+
+			var loginStatus = bidarr.url.getVar("loggedout");
+			if (loginStatus) {
+				bidarr.login.clearCredentials();
+			} else {
+				loginStatus = bidarr.url.getVar("status");
+				if (loginStatus && (loginStatus == "bad_login" || loginStatus == "javascript")) {
+					bidarr.login.clearCredentials();
+					bidarr.url.redirectToMain();
+				} else {
+					$("#login_username").val(bidarr.login.bidarrUsername);
+                	$("#login_password").val(bidarr.login.bidarrPassword);
+                
+                	$("#login-form").find("div#login-buttons").find("button:first-child").trigger("click");
+				}
+			}
+		},
+
+		credentialsStored: function() {
+			if (typeof localStorage.bidarrUsername != "undefined" && localStorage.bidarrUsername != "") {
+				if (typeof localStorage.bidarrPassword != "undefined" && localStorage.bidarrPassword != "") {
+					bidarr.login.bidarrUsername = localStorage.bidarrUsername;
+					bidarr.login.bidarrPassword = localStorage.bidarrPassword;
+					return true;
+				}
+			} else {
+				bidarr.login.applyWatchers();
+			}
+
+			return false;
+		},
+
+		applyWatchers: function () {
+			$("#login_username").on("blur",function() {
+				if ($("#login_username").val().length > 0) {
+                	localStorage.bidarrUsername = $("#login_username").val();
+                }
+            });
+            $("#login_username").keypress(function(e) {
+                if(e.which == 13) {
+                	if ($("#login_username").val().length > 0) {
+                    	localStorage.bidarrUsername = $("#login_username").val();
+                    }
+
+                    if ($("#login_password").val().length > 0) {
+                    	localStorage.bidarrPassword = $("#login_password").val();
+                    }
+                }
+            });
+            
+            $("#login_password").on("blur",function() {
+        		if ($("#login_password").val().length > 0) {
+                	localStorage.bidarrPassword = $("#login_password").val();
+                }
+            });
+            $("#login_password").keypress(function(e) {
+                if(e.which == 13) {
+                	if ($("#login_username").val().length > 0) {
+                		localStorage.bidarrUsername = $("#login_username").val();
+                	}
+
+                	if ($("#login_password").val().length > 0) {
+                    	localStorage.bidarrPassword = $("#login_password").val();
+                    }
+                }
+            });
+		},
+
+		clearCredentials: function() {
+			localStorage.removeItem("bidarrUsername");
+			localStorage.removeItem("bidarrPassword");
+		}
 	},
 
 	//Bets reminder module
@@ -135,6 +256,30 @@ var bidarr = {
 					}
 				}
 			}
+		}
+	},
+
+	url: {
+		params: {},
+
+		toArray: function(url) {
+  			var pairs = url.substring(url.indexOf('?') + 1).split('&');
+  			for (var i = 0; i < pairs.length; i++) {
+    			var pair = pairs[i].split('=');
+    			bidarr.url.params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+  			}
+		},
+
+		getVar: function(name) {
+			if (!$.isEmptyObject(bidarr.url.params) && typeof bidarr.url.params[name] != "undefined") {
+				return bidarr.url.params[name];
+			} else {
+				return null;
+			}
+		},
+
+		redirectToMain: function() {
+			window.location.href = "http://www.cs-manager.com/";
 		}
 	}
 };
