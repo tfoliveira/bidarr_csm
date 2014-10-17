@@ -3,6 +3,7 @@
   
   "name" : "Bidarr CSM Extension",
   "version" : "1.0.1",
+
   "description" : "Adicionar varias mini-funcoes ao csm.",
 
   "icons": { "128": "icon128.png" },
