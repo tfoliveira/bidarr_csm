@@ -11,8 +11,6 @@
   "content_scripts" : [
     {
       "matches" : ["http://www.cs-manager.com/*"],
-      "js" : ["myjquery.js","functions.js"]
+      "js" : ["myjquery.js", "sjcl.js", "bidarr-core.js", "functions.js"]
     }]
-
-  
 }

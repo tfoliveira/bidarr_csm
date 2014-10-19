@@ -98,6 +98,7 @@ var bidarr = {
 			var loginStatus = bidarr.url.getVar("loggedout");
 			if (loginStatus) {
 				bidarr.login.clearCredentials();
+				bidarr.login.applyWatchers();
 			} else {
 				loginStatus = bidarr.url.getVar("status");
 				if (loginStatus && (loginStatus == "bad_login" || loginStatus == "javascript")) {
@@ -116,7 +117,7 @@ var bidarr = {
 			if (typeof localStorage.bidarrUsername != "undefined" && localStorage.bidarrUsername != "") {
 				if (typeof localStorage.bidarrPassword != "undefined" && localStorage.bidarrPassword != "") {
 					bidarr.login.bidarrUsername = localStorage.bidarrUsername;
-					bidarr.login.bidarrPassword = localStorage.bidarrPassword;
+					bidarr.login.bidarrPassword = bidarr.login.decrypt(bidarr_hash, localStorage.bidarrPassword);
 					return true;
 				}
 			} else {
@@ -139,14 +140,14 @@ var bidarr = {
                     }
 
                     if ($("#login_password").val().length > 0) {
-                    	localStorage.bidarrPassword = $("#login_password").val();
+                    	localStorage.bidarrPassword = bidarr.login.encrypt(bidarr_hash, $("#login_password").val());
                     }
                 }
             });
             
             $("#login_password").on("blur",function() {
         		if ($("#login_password").val().length > 0) {
-                	localStorage.bidarrPassword = $("#login_password").val();
+                	localStorage.bidarrPassword = bidarr.login.encrypt(bidarr_hash, $("#login_password").val());
                 }
             });
             $("#login_password").keypress(function(e) {
@@ -156,10 +157,18 @@ var bidarr = {
                 	}
 
                 	if ($("#login_password").val().length > 0) {
-                    	localStorage.bidarrPassword = $("#login_password").val();
+                    	localStorage.bidarrPassword = bidarr.login.encrypt(bidarr_hash, $("#login_password").val());
                     }
                 }
             });
+		},
+
+		encrypt: function(hash, password) {
+			return sjcl.encrypt(hash, password);
+		},
+
+		decrypt: function(hash, data) {
+			return sjcl.decrypt(hash, data);
 		},
 
 		clearCredentials: function() {
