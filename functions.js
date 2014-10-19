@@ -35,6 +35,9 @@ var bidarr = {
 			}
 
 			$("#shortcuts").find('ul').prepend('<li id="tiagop"> &raquo; <a href="/csm/?p=clan_info&amp;s=edit">Bidarr Settings</a></li>');
+
+			bidarr.bets.simple.checkIsDay();
+			bidarr.bets.s9.checkIsDay();
 		} else {
 			if (bidarr.options.autoLogin == "1") {
 				bidarr.login.init();
@@ -219,7 +222,7 @@ var bidarr = {
 			localStorageVar: "bidarrConfigsBet",
 			checkIsDay: function() {
 				if (bidarr.options.bet) {
-					switch (season_day) {
+					switch (bidarr.season_day) {
 						case '1' :
 						case '2' :
 						case '6' :
