@@ -1,5 +1,6 @@
 var bidarr = {
 	season_day: null,
+	countries: null,
 
 	init: function() {
 
@@ -12,6 +13,8 @@ var bidarr = {
 
 		if (!bidarr.login.isLoginPage()) {
 			bidarr.season_day = $("#date-day").find('span').html();
+
+			bidarr.getCountries();
 
 			//Get simple bets configs
 			bidarr.options.bet = localStorage[bidarr.bets.simple.localStorageVar];
@@ -40,6 +43,36 @@ var bidarr = {
 				bidarr.login.clearCredentials();
 			}
 		}
+	},
+
+	getCountries: function() {
+		if (!bidarr.countries) {
+			if (localStorage.bidarrCountries) {
+				bidarr.countries = JSON.parse(localStorage.bidarrCountries);
+			} else {
+				$.ajax({
+  					url: 'http://www.cs-manager.com/csm/?p=gameinfo&s=members',
+  					async: false,
+  					success: function(data) {
+  						var countries = [];
+
+  						$("#main #main-content table tbody > tr", $(data)).each(function() {
+  							if (!$(this).hasClass("emphasized")) {
+  								countries[countries.length] = {
+  									flag: $(this).find("td:nth-child(1) img").prop("src").replace("http://www.cs-manager.com/images/flags/", "").replace(".png", ""), 
+						            name: $(this).find("td:nth-child(1) img").prop("title") 
+  								};
+  							}
+  						});
+
+  						bidarr.countries = countries;
+  						localStorage.bidarrCountries = JSON.stringify(countries);
+  					}
+				});
+			}
+		}
+
+		return bidarr.countries;
 	},
 
 	createMenu: function() {
