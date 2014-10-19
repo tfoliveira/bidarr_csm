@@ -1,6 +1,5 @@
 var bidarr = {
 	season_day: null,
-	countries: null,
 
 	init: function() {
 
@@ -14,7 +13,7 @@ var bidarr = {
 		if (!bidarr.login.isLoginPage()) {
 			bidarr.season_day = $("#date-day").find('span').html();
 
-			bidarr.getCountries();
+			bidarr.countries.getCountries();
 
 			//Get simple bets configs
 			bidarr.options.bet = localStorage[bidarr.bets.simple.localStorageVar];
@@ -43,36 +42,6 @@ var bidarr = {
 				bidarr.login.clearCredentials();
 			}
 		}
-	},
-
-	getCountries: function() {
-		if (!bidarr.countries) {
-			if (localStorage.bidarrCountries) {
-				bidarr.countries = JSON.parse(localStorage.bidarrCountries);
-			} else {
-				$.ajax({
-  					url: 'http://www.cs-manager.com/csm/?p=gameinfo&s=members',
-  					async: false,
-  					success: function(data) {
-  						var countries = [];
-
-  						$("#main #main-content table tbody > tr", $(data)).each(function() {
-  							if (!$(this).hasClass("emphasized")) {
-  								countries[countries.length] = {
-  									flag: $(this).find("td:nth-child(1) img").prop("src").replace("http://www.cs-manager.com/images/flags/", "").replace(".png", ""), 
-						            name: $(this).find("td:nth-child(1) img").prop("title") 
-  								};
-  							}
-  						});
-
-  						bidarr.countries = countries;
-  						localStorage.bidarrCountries = JSON.stringify(countries);
-  					}
-				});
-			}
-		}
-
-		return bidarr.countries;
 	},
 
 	createMenu: function() {
@@ -105,9 +74,41 @@ var bidarr = {
 	},
 
 
+	countries: {
+		data: null,
+		localStorageVar: "bidarrCountries",
+		getCountries: function() {
+			if (!bidarr.countries.data) {
+				if (localStorage[bidarr.countries.localStorageVar]) {
+					bidarr.countries.data = JSON.parse(localStorage[bidarr.countries.localStorageVar]);
+				} else {
+					$.ajax({
+	  					url: 'http://www.cs-manager.com/csm/?p=gameinfo&s=members',
+	  					async: false,
+	  					success: function(data) {
+	  						var countries = [];
+
+	  						$("#main #main-content table tbody > tr", $(data)).each(function() {
+	  							if (!$(this).hasClass("emphasized")) {
+	  								countries[countries.length] = {
+	  									flag: $(this).find("td:nth-child(1) img").prop("src").replace("http://www.cs-manager.com/images/flags/", "").replace(".png", ""), 
+							            name: $(this).find("td:nth-child(1) img").prop("title") 
+	  								};
+	  							}
+	  						});
+
+	  						bidarr.countries.data = countries;
+	  						localStorage[bidarr.countries.localStorageVar] = JSON.stringify(countries);
+	  					}
+					});
+				}
+			}
+		}
+	},
+
 	// Auto login feature
 	login: {
-		localStorageVar: "bidarr_csmp_autoLogin",
+		localStorageVar: "bidarrConfigsAutoLogin",
 		bidarrUsername: "",
 		bidarrPassword: "",
 
@@ -215,7 +216,7 @@ var bidarr = {
 		simple: {
 			isDay: false,
 			alertHtml: '<span style="display: block; background-color: #F2DEDE; text-align: center; margin-bottom: 10px; width: 100%; border: 1px solid #EED3D7;"><a href="http://www.cs-manager.com/csm/?p=community_betting" style="color: #B94A48;">Simple Bet Reminder!</a></span>',
-			localStorageVar: "bidarr_csmp_bet",
+			localStorageVar: "bidarrConfigsBet",
 			checkIsDay: function() {
 				if (bidarr.options.bet) {
 					switch (season_day) {
@@ -264,7 +265,7 @@ var bidarr = {
 		s9: {
 			isDay: false,
 			alertHtml: '<span style="display: block; background-color: #F2DEDE; color: #B94A48; text-align: center; margin-bottom: 10px; width: 100%; border: 1px solid #EED3D7;"><a href="http://www.cs-manager.com/csm/?p=community_betting" style="color: #B94A48;">S9 Reminder!</a></span>',
-			localStorageVar: "bidarr_csmp_s9",
+			localStorageVar: "bidarrConfigsS9",
 			checkIsDay: function() {
 				if (bidarr.options.s9 == "1") {
 					switch (bidarr.season_day) {
