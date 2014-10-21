@@ -1,4 +1,5 @@
 var bidarr = {
+	version: "112",
 	season_day: null,
 
 	init: function() {
@@ -13,6 +14,9 @@ var bidarr = {
 		} 
 
 		if (!bidarr.login.isLoginPage()) {
+
+			bidarr.checkVersion();
+
 			bidarr.season_day = $("#date-day").find('span').html();
 
 			bidarr.countries.getCountries();
@@ -59,30 +63,35 @@ var bidarr = {
 		}
 	},
 
+	checkVersion: function() {
+		if (localStorage.bidarrVersion) {
+			if (localStorage.bidarrVersion < bidarr.version) {
+				localStorage.bidarrVersion = bidarr.version;
+				$("#main").prepend('<span style="display: block; background-color: #F2DEDE; text-align: center; margin-bottom: 10px; width: 100%; border: 1px solid #EED3D7;"><a href="http://www.cs-manager.com/csm/?p=clan_info&s=edit" style="color: #B94A48;">You\'re using Bidarr CSM Plugin new version! Check settings to enable any new feature.</a></span>');
+			}
+		} else {
+			localStorage.bidarrVersion = bidarr.version;
+		}
+	},
+
 	createMenu: function() {
 		var menu = '<div id="tiago_csmp"><span onclick="javascript:CSM.clan_presentation.toggleSettings(this);" class="toggleSettings">'
 				 + '<h3><a class="plus-more">+</a> Bidarr Plugin</h3>'
-				 + '</span><form style="display: none;">'
+				 + '</span><form style="display: none;"><table class="table_trust">'
 
-				 + 'Auto Login: <input type="checkbox"' + ((bidarr.options.autoLogin == "1") ? " checked=checked " : " ")
-				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.login.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.login.localStorageVar + '\'] = 0;">'
+				 + '<tr><td>Auto Login:</td><td><input type="checkbox"' + ((bidarr.options.autoLogin == "1") ? " checked=checked " : " ")
+				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.login.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.login.localStorageVar + '\'] = 0;"></td></tr>'
 
-				 + '<br>'
+				 + '<tr><td>S9 Reminder:</td><td><input type="checkbox"' + ((bidarr.options.s9 == "1") ? " checked=checked " : " ")
+				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.bets.s9.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.bets.s9.localStorageVar + '\'] = 0;"></td></tr>'
 
-				 + 'S9 Reminder: <input type="checkbox"' + ((bidarr.options.s9 == "1") ? " checked=checked " : " ")
-				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.bets.s9.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.bets.s9.localStorageVar + '\'] = 0;">'
+				 + '<tr><td>Simple Bets Reminder:</td><td><input type="checkbox"' + ((bidarr.options.bet == "1") ? " checked=checked " : " ")
+				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.bets.simple.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.bets.simple.localStorageVar + '\'] = 0;"></td></tr>' 
 
-				 + '<br>'
+				 + '<tr><td>Transfer List Infinite Scroll:</td><td><input type="checkbox"' + ((bidarr.options.infiniteScroll == "1") ? " checked=checked " : " ")
+				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.infiniteScroll.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.infiniteScroll.localStorageVar + '\'] = 0;"></td></tr>' 
 
-				 + 'Simple Bets Reminder: <input type="checkbox"' + ((bidarr.options.bet == "1") ? " checked=checked " : " ")
-				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.bets.simple.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.bets.simple.localStorageVar + '\'] = 0;">' 
-
-				 + '<br>'
-
-				 + 'Transfer List Infinite Scroll: <input type="checkbox"' + ((bidarr.options.infiniteScroll == "1") ? " checked=checked " : " ")
-				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.infiniteScroll.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.infiniteScroll.localStorageVar + '\'] = 0;">' 
-
-				 + '</form></div><hr>';
+				 + '</table></form></div><hr>';
 
 		 return menu;
 	},
@@ -233,7 +242,7 @@ var bidarr = {
 	//Bets reminder module
 	bets: {
 		simple: {
-			isDay: false,
+			isDay: true,
 			alertHtml: '<span style="display: block; background-color: #F2DEDE; text-align: center; margin-bottom: 10px; width: 100%; border: 1px solid #EED3D7;"><a href="http://www.cs-manager.com/csm/?p=community_betting" style="color: #B94A48;">Simple Bet Reminder!</a></span>',
 			localStorageVar: "bidarrConfigsBet",
 			checkIsDay: function() {
@@ -259,7 +268,7 @@ var bidarr = {
 						case '48':
 						case '49':
 						case '50':
-							bidarr.bets.simple.isDay = true;
+							bidarr.bets.simple.isDay = false;
 							break;
 					}
 
