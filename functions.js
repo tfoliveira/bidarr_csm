@@ -3,6 +3,8 @@ var bidarr = {
 
 	init: function() {
 
+		bidarr.url.toArray(window.location.href);
+
 		//Get autoLogin config
 		bidarr.options.autoLogin = localStorage[bidarr.login.localStorageVar];
 		if (!bidarr.options.autoLogin) {
@@ -29,8 +31,14 @@ var bidarr = {
 				bidarr.options.s9 = "0";
 			} 
 
+			bidarr.options.infiniteScroll = localStorage[bidarr.infiniteScroll.localStorageVar];
+			if (!bidarr.options.infiniteScroll) {
+				localStorage[bidarr.infiniteScroll.localStorageVar] = "0";
+				bidarr.options.infiniteScroll = "0";
+			} 
+
 			//Prepare DOM elements
-			if (document.URL.match(/http:\/\/www\.cs-manager\.com\/csm\/\?p=clan_info&s=edit/)) {
+			if (bidarr.url.getVar("p") == "clan_info" && bidarr.url.getVar("s") == "edit") {
 				$("#cp-settings").prepend(bidarr.createMenu());
 			}
 
@@ -38,6 +46,10 @@ var bidarr = {
 
 			bidarr.bets.simple.checkIsDay();
 			bidarr.bets.s9.checkIsDay();
+
+			if (bidarr.options.infiniteScroll && bidarr.infiniteScroll.isTransferListPage()) {
+				bidarr.infiniteScroll.applyInfiniteScroll();
+			}
 		} else {
 			if (bidarr.options.autoLogin == "1") {
 				bidarr.login.init();
@@ -65,6 +77,11 @@ var bidarr = {
 				 + 'Simple Bets Reminder: <input type="checkbox"' + ((bidarr.options.bet == "1") ? " checked=checked " : " ")
 				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.bets.simple.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.bets.simple.localStorageVar + '\'] = 0;">' 
 
+				 + '<br>'
+
+				 + 'Transfer List Infinite Scroll: <input type="checkbox"' + ((bidarr.options.infiniteScroll == "1") ? " checked=checked " : " ")
+				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.infiniteScroll.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.infiniteScroll.localStorageVar + '\'] = 0;">' 
+
 				 + '</form></div><hr>';
 
 		 return menu;
@@ -73,7 +90,8 @@ var bidarr = {
 	options: {
 		bet: null,
 		s9: null,
-		autoLogin: null
+		autoLogin: null,
+		infiniteScroll: null
 	},
 
 
@@ -130,8 +148,6 @@ var bidarr = {
 		},
 
 		tryLogin: function() {
-			bidarr.url.toArray(window.location.href);
-
 			var loginStatus = bidarr.url.getVar("loggedout");
 			if (loginStatus) {
 				bidarr.login.clearCredentials();
@@ -305,15 +321,141 @@ var bidarr = {
 		}
 	},
 
+	infiniteScroll: {
+		loadedPages: 0,
+		qtyPerPage: 8,
+		localStorageVar: "bidarrInfiniteScroll",
+		players: [],
+
+		skills: {
+			1: "Aim",
+			2: "Teamplay",
+			3: "Handling",
+			4: "Playing IQ",
+			5: "Quickness",
+			6: "Determination",
+			7: "Awareness",
+			8: "Creativity",
+			9: "Patience",
+			10: "Calmness"
+		},
+
+		applyInfiniteScroll: function() {
+			if (bidarr.options.infiniteScroll == "1" && bidarr.infiniteScroll.isTransferListPage()) {
+
+				$("#wrapper").prepend("<div id='bidarrInfiniteScrollLoading' style='text-shadow: none;font-weight: bold;width:100%;height:50px;opacity:0.8;line-height: 50px;background-color:#333;position:fixed;bottom:0;left:0;text-align:center;color: #FFF;z-index:11111;'>Loading players, please wait...</div>");
+
+				//Apply infinite scroll to the page
+				bidarr.infiniteScroll.players = [];
+				$("article.player").each(function() {
+					var index = bidarr.infiniteScroll.players.length;
+					bidarr.infiniteScroll.players[index] = {
+						"dom": $(this),
+						"skills": {}
+					}
+
+					var skill = 1;
+					$(this).find("div.stats div.skills ul.skills-bar li").each(function() {
+						if (skill < 11) {
+							var urlPairs = bidarr.url.toArray($(this).find("div.visual img").attr("src"), true);
+							bidarr.infiniteScroll.players[index].skills[skill] = {
+								value: urlPairs.skill,
+								limit: urlPairs.limit
+							}
+						}
+
+						skill++;
+					});
+				});
+
+				//Confirm the default players length
+				bidarr.infiniteScroll.qtyPerPage = bidarr.infiniteScroll.players.length;
+
+				var pages = [];
+				$("#date-nav li").each(function() {
+					var value;
+
+					if ($(this).find("a").length > 0) {
+						pages[pages.length] = $(this).find("a").prop("href");
+					}
+				});
+
+				//The initial page will always be loaded at the beginning
+				bidarr.infiniteScroll.loadedPages = 1;
+
+				var loadPage = function(page) {
+					$.ajax({
+						url: pages[bidarr.infiniteScroll.loadedPages - 1],
+						success: function(data) {
+							bidarr.infiniteScroll.loadedPages++;
+
+							var j = 0;
+							$("article.player", $(data)).each(function() {
+								var index = ((page - 1) * bidarr.infiniteScroll.qtyPerPage) + j;
+								j++;
+								
+								bidarr.infiniteScroll.players[index] = {
+									"dom": $(this),
+									"skills": {}
+								}
+
+								$("#date-nav").before($(this));
+
+								var skill = 1;
+								$(this).find("div.stats div.skills ul.skills-bar li").each(function() {
+									if (skill < 11) {
+    									var urlPairs = bidarr.url.toArray($(this).find("div.visual img").attr("src"), true);
+    									bidarr.infiniteScroll.players[index].skills[skill] = {
+    										value: urlPairs.skill,
+    										limit: urlPairs.limit
+    									}
+        							}
+
+    								skill++;
+								});
+							});
+
+							if (bidarr.infiniteScroll.loadedPages < pages.length) {
+								loadPage(page + 1);
+							} else {
+								$("#date-nav").remove();
+								$("#bidarrInfiniteScrollLoading").remove();
+
+								//console.log(bidarr.infiniteScroll.players);
+							}
+						}
+					});
+				}
+
+				loadPage(2);
+			}
+		},
+
+		isTransferListPage: function() {
+			if (bidarr.url.getVar("p") == "office_transfer" && (bidarr.url.getVar("s") == "list" || (bidarr.url.getVar("s") == "search" && bidarr.url.getVar("a") == "search") || !bidarr.url.getVar("s")) && !bidarr.url.getVar("start") || bidarr.url.getVar("start") == "0") {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	},
+
 	url: {
 		params: {},
 
-		toArray: function(url) {
+		toArray: function(url, noCache) {
+			var urlPairs = {};
   			var pairs = url.substring(url.indexOf('?') + 1).split('&');
   			for (var i = 0; i < pairs.length; i++) {
     			var pair = pairs[i].split('=');
-    			bidarr.url.params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+
+    			urlPairs[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+    			if (typeof noCache == "undefined" || !noCache) {
+    				bidarr.url.params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+    			}
   			}
+
+  			return urlPairs;
 		},
 
 		getVar: function(name) {
