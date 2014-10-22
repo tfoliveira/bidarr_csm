@@ -299,10 +299,10 @@ var bidarr = {
 					switch (bidarr.season_day) {
 						case '3':
 						case '4' :
-						case '11':
-						case '10': 
-						case '18':
-						case '19': 
+						case '10':
+						case '11': 
+						case '17':
+						case '18': 
 						case '24': 
 						case '25':
 						case '31': 
