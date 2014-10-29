@@ -1,5 +1,5 @@
 var bidarr = {
-	version: "112",
+	version: "113",
 	season_day: null,
 
 	init: function() {
@@ -299,10 +299,10 @@ var bidarr = {
 					switch (bidarr.season_day) {
 						case '3':
 						case '4' :
-						case '11':
-						case '10': 
-						case '18':
-						case '19': 
+						case '10':
+						case '11': 
+						case '17':
+						case '18': 
 						case '24': 
 						case '25':
 						case '31': 
@@ -436,7 +436,12 @@ var bidarr = {
 					});
 				}
 
-				loadPage(2);
+				if (pages.length > 0) {
+					loadPage(2);
+				} else {
+					$("#date-nav").remove();
+					$("#bidarrInfiniteScrollLoading").remove();
+				}
 			}
 		},
 
