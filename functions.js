@@ -1,5 +1,5 @@
 var bidarr = {
-	version: "112",
+	version: "113",
 	season_day: null,
 
 	init: function() {
@@ -436,7 +436,12 @@ var bidarr = {
 					});
 				}
 
-				loadPage(2);
+				if (pages.length > 0) {
+					loadPage(2);
+				} else {
+					$("#date-nav").remove();
+					$("#bidarrInfiniteScrollLoading").remove();
+				}
 			}
 		},
 
