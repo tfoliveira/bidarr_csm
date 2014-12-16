@@ -1,10 +1,20 @@
 var bidarr = {
-	version: "113",
+	version: "114",
 	season_day: null,
 
 	init: function() {
 
 		bidarr.url.toArray(window.location.href);
+
+		bidarr.options.staffSearch = localStorage[bidarr.staffSearch.localStorageVar];
+		if (!bidarr.options.staffSearch) {
+			localStorage[bidarr.staffSearch.localStorageVar] = "0";
+			bidarr.options.staffSearch = "0";
+		}
+
+		if (bidarr.options.staffSearch == "1") {
+			bidarr.staffSearch.trySearch();
+		}
 
 		//Get autoLogin config
 		bidarr.options.autoLogin = localStorage[bidarr.login.localStorageVar];
@@ -54,6 +64,10 @@ var bidarr = {
 			if (bidarr.options.infiniteScroll && bidarr.infiniteScroll.isTransferListPage()) {
 				bidarr.infiniteScroll.applyInfiniteScroll();
 			}
+
+			if (bidarr.options.staffSearch == "1") {
+				bidarr.staffSearch.putSearchingElement();
+			}
 		} else {
 			if (bidarr.options.autoLogin == "1") {
 				bidarr.login.init();
@@ -67,7 +81,7 @@ var bidarr = {
 		if (localStorage.bidarrVersion) {
 			if (localStorage.bidarrVersion < bidarr.version) {
 				localStorage.bidarrVersion = bidarr.version;
-				$("#main").prepend('<span style="display: block; background-color: #F2DEDE; text-align: center; margin-bottom: 10px; width: 100%; border: 1px solid #EED3D7;"><a href="http://www.cs-manager.com/csm/?p=clan_info&s=edit" style="color: #B94A48;">You\'re using Bidarr CSM Plugin new version! Check settings to enable any new feature.</a></span>');
+				$("#main").prepend('<span style="display: block; background-color: #F2DEDE; text-align: center; margin-bottom: 10px; width: 100%; border: 1px solid #EED3D7;"><a href="http://www.cs-manager.com/csm/?p=clan_info&s=edit" style="color: #B94A48;">You\'re using a new version of Bidarr CSM Plugin! Check settings to enable any new feature.</a></span>');
 			}
 		} else {
 			localStorage.bidarrVersion = bidarr.version;
@@ -91,6 +105,9 @@ var bidarr = {
 				 + '<tr><td>Transfer List Infinite Scroll:</td><td><input type="checkbox"' + ((bidarr.options.infiniteScroll == "1") ? " checked=checked " : " ")
 				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.infiniteScroll.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.infiniteScroll.localStorageVar + '\'] = 0;"></td></tr>' 
 
+				 + '<tr><td>Staff Search:</td><td><input type="checkbox"' + ((bidarr.options.staffSearch == "1") ? " checked=checked " : " ")
+				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.staffSearch.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.staffSearch.localStorageVar + '\'] = 0;"></td></tr>'
+
 				 + '</table></form></div><hr>';
 
 		 return menu;
@@ -100,7 +117,8 @@ var bidarr = {
 		bet: null,
 		s9: null,
 		autoLogin: null,
-		infiniteScroll: null
+		infiniteScroll: null,
+		staffSearch: null
 	},
 
 
@@ -450,6 +468,203 @@ var bidarr = {
 				return true;
 			} else {
 				return false;
+			}
+		}
+	},
+
+	staffSearch: {
+		localStorageVar: "bidarrStaffSearch",
+		defaultAttemptsQuantity: "500",
+		localStorageSearchingVar: "bidarrSearching",
+		localStorageSearchingLimitVar: "bidarrSearchingLimit",
+		localStorageSearchingMomentVar: "bidarrSearchingMoment",
+
+		isStaffPage: function() {
+			if (bidarr.url.getVar("p") == "office_staff" && bidarr.url.getVar("s") == "manage") {
+				return true;
+			} else {
+				return false;
+			}
+		},
+
+		isSearchingEnabled: function() {
+			console.log(localStorage[bidarr.staffSearch.localStorageSearchingVar]);
+			if (localStorage[bidarr.staffSearch.localStorageSearchingVar] == "1") {
+				return true;
+			} else {
+				return false;
+			}
+		},
+
+		insideSearchingLimit: function() {
+			if (typeof localStorage[bidarr.staffSearch.localStorageSearchingLimitVar] == "undefined") {
+				localStorage[bidarr.staffSearch.localStorageSearchingLimitVar] = bidarr.staffSearch.defaultAttemptsQuantity;
+			}
+
+			if (parseInt(localStorage[bidarr.staffSearch.localStorageSearchingMomentVar]) < parseInt(localStorage[bidarr.staffSearch.localStorageSearchingLimitVar])) {
+				return true;
+			} else {
+				return false;
+			}
+		},
+
+		trySearch: function() {
+			if (typeof localStorage.bidarrStaffSearchFound != "undefined") {
+				$("#wrapper").prepend("<span style='display: block; background-color: #eeffee; color: #009900; text-align: center; margin-bottom: 10px; width: 100%; border: 1px solid #009900;'>Your staff was found. Hurry up to hire him!!</span>");
+				localStorage.removeItem("bidarrStaffSearchFound");
+
+				var found = false;
+				$("#staff-list .staff-entry").each(function() {
+					if (localStorage.bidarrStaffSearchNationality != "bidarr") {
+						var nation = ($(this).find("ul > li:nth-child(4) > img").prop("src") == "http://www.cs-manager.com/images/flag_" + localStorage.bidarrStaffSearchNationality + ".png");
+					} else {
+						var nation = true;
+					}
+	    			var quality = ($(this).find("ul > li:nth-child(6) > img").prop("src") == "http://www.cs-manager.com/images/activity_" + localStorage.bidarrStaffSearchS1 + ".gif");
+	    			var quantity = ($(this).find("ul > li:nth-child(7) > img").prop("src") == "http://www.cs-manager.com/images/activity_" + localStorage.bidarrStaffSearchS2 + ".gif");
+	    			var knowledge = ($(this).find("ul > li:nth-child(8) > img").prop("src") == "http://www.cs-manager.com/images/activity_" + localStorage.bidarrStaffSearchS3 + ".gif");
+
+	    			if (nation && quality && quantity && knowledge) {
+        				$(this).css("border", "1px solid green");
+	    			}
+	    		});
+
+	    		bidarr.staffSearch.removeParamsToStopSearching();
+
+			} else if (bidarr.staffSearch.isStaffPage() && bidarr.staffSearch.isSearchingEnabled() && bidarr.staffSearch.insideSearchingLimit()) {
+
+				$("#wrapper").prepend("<div id='bidarrSearchingAttempts' style='text-shadow: none;font-weight: bold;width:100%;height:50px;opacity:0.8;line-height: 50px;background-color:#333;position:fixed;bottom:0;left:0;text-align:center;color: #FFF;z-index:11111;'>Searching for staff, please wait... Attempt <span id='bidarrAttempt'>1</span> of " + localStorage[bidarr.staffSearch.localStorageSearchingLimitVar] + "</div>");
+
+				$(window).on("beforeunload", function() {
+					localStorage.removeItem("bidarrSearching");
+				});
+
+				var found = false;
+
+				$.ajax({
+  					url: window.location.href,
+  					async: true,
+  					success: function(data) {
+  						$("#staff-list .staff-entry", $(data)).each(function() {
+  							if (localStorage.bidarrStaffSearchNationality != "bidarr") {
+  								var nation = ($(this).find("ul > li:nth-child(4) > img").prop("src") == "http://www.cs-manager.com/images/flag_" + localStorage.bidarrStaffSearchNationality + ".png");
+  							} else {
+  								var nation = true;
+  							}
+			    			var quality = ($(this).find("ul > li:nth-child(6) > img").prop("src") == "http://www.cs-manager.com/images/activity_" + localStorage.bidarrStaffSearchS1 + ".gif");
+			    			var quantity = ($(this).find("ul > li:nth-child(7) > img").prop("src") == "http://www.cs-manager.com/images/activity_" + localStorage.bidarrStaffSearchS2 + ".gif");
+			    			var knowledge = ($(this).find("ul > li:nth-child(8) > img").prop("src") == "http://www.cs-manager.com/images/activity_" + localStorage.bidarrStaffSearchS3 + ".gif");
+
+			    			if (nation && quality && quantity && knowledge) {
+			        			found = true; 
+			    			}
+			    		});
+
+			    		if (!found) { 
+							var aux = parseInt(localStorage[bidarr.staffSearch.localStorageSearchingMomentVar]) + 1;
+							localStorage[bidarr.staffSearch.localStorageSearchingMomentVar] = aux + "";
+
+							if (bidarr.staffSearch.insideSearchingLimit()) {
+								$("#bidarrAttempt").html(localStorage[bidarr.staffSearch.localStorageSearchingMomentVar]);
+		    					var request = this;
+
+		    					setTimeout(function(){ 
+		    						$.ajax(request);
+		    					}, 2000);
+							} else {
+								//Stop search as we didn't found anything...
+								bidarr.staffSearch.removeParamsToStopSearching();
+								$("#bidarrSearchingAttempts").remove();
+								$("#wrapper").prepend("<span style='display: block; background-color: #F2DEDE; color: #B94A48; text-align: center; margin-bottom: 10px; width: 100%; border: 1px solid #EED3D7;'>Unable to find your desired staff within the max number attempts! Try again later... :(</span>");
+							}
+						} else {
+							//Staff was found!
+							localStorage.bidarrStaffSearchFound = "1";
+							window.location.reload();
+						}
+  					}
+				});
+			} else {
+				bidarr.staffSearch.removeParamsToStopSearching();
+			}
+		},
+
+		removeParamsToStopSearching: function() {
+			localStorage.removeItem("bidarrStaffSearchNationality");
+			localStorage.removeItem("bidarrStaffSearchS1");
+			localStorage.removeItem("bidarrStaffSearchS2");
+			localStorage.removeItem("bidarrStaffSearchS3");
+
+			localStorage.removeItem(bidarr.staffSearch.localStorageSearchingMomentVar);
+			localStorage.removeItem(bidarr.staffSearch.localStorageSearchingVar);
+		},
+
+		putSearchingElement: function() {
+			if (bidarr.staffSearch.isStaffPage()) {
+				$("#wrapper").prepend("<div id='bidarrStaffSearch'></div>");
+
+				var html = "<table class='table_trust' style='display: none;'><tbody><tr>"
+						+ "<td>Nationality:</td><td style='text-align: right;'><select id='bidarrStaffSearchNationality'>"
+							+ "<option value='bidarr'>Any</option>"
+							+ "<option value='ar'>Argentina</option>"
+							+ "<option value='at'>Austria</option>"
+							+ "<option value='be'>Belgium</option>"
+							+ "<option value='cc'>CSM Country</option>"
+							+ "<option value='dk'>Denmark</option>"
+							+ "<option value='ee'>Estonia</option>"
+							+ "<option value='fi'>Finland</option>"
+							+ "<option value='fr'>France</option>"
+							+ "<option value='de'>Germany</option>"
+							+ "<option value='gr'>Greece</option>"
+							+ "<option value='il'>Israel</option>"
+							+ "<option value='lv'>Latvia</option>"
+							+ "<option value='no'>Norway</option>"
+							+ "<option value='pl'>Poland</option>"
+							+ "<option value='pt'>Portugal</option>"
+							+ "<option value='ro'>Romania</option>"
+							+ "<option value='ru'>Russia</option>"
+							+ "<option value='es'>Spain</option>"
+							+ "<option value='se'>Sweden</option>"
+							+ "<option value='ch'>Switzerland</option>"
+							+ "<option value='uk'>UK</option>"
+							+ "<option value='us'>USA</option>"
+							+ "<option value='nl'>the Netherlands</option>"
+						+ "</select></td></tr><tr>"
+						+ "<td>Skill 1:</td><td style='text-align: right;'><select id='bidarrStaffSearchS1'>"
+							+ "<option value='1'>1</option>"
+							+ "<option value='2'>2</option>"
+							+ "<option value='3'>3</option>"
+							+ "<option value='4'>4</option>"
+							+ "<option value='5' SELECTED>5</option>"
+						+ "</select></td></tr><tr>"
+
+						+ "<td>Skill 2:</td><td style='text-align: right;'><select id='bidarrStaffSearchS2'>"
+							+ "<option value='1'>1</option>"
+							+ "<option value='2'>2</option>"
+							+ "<option value='3'>3</option>"
+							+ "<option value='4'>4</option>"
+							+ "<option value='5' SELECTED>5</option>"
+						+ "</select></td></tr><tr>"
+
+						+ "<td>Skill 3:</td><td style='text-align: right;'><select id='bidarrStaffSearchS3'>"
+							+ "<option value='1'>1</option>"
+							+ "<option value='2'>2</option>"
+							+ "<option value='3'>3</option>"
+							+ "<option value='4'>4</option>"
+							+ "<option value='5' SELECTED>5</option>"
+						+ "</select></td></tr><tr>"
+
+						+ "<td></td><td style='text-align: right;'><button onclick='localStorage.bidarrStaffSearchNationality=$(\"#bidarrStaffSearchNationality\").val();"
+							+ "localStorage.bidarrStaffSearchS1=$(\"#bidarrStaffSearchS1\").val();"
+							+ "localStorage.bidarrStaffSearchS2=$(\"#bidarrStaffSearchS2\").val();"
+							+ "localStorage.bidarrStaffSearchS3=$(\"#bidarrStaffSearchS3\").val();"
+							+ "localStorage." + bidarr.staffSearch.localStorageSearchingMomentVar + "=\"1\";"
+							+ "localStorage." + bidarr.staffSearch.localStorageSearchingVar + "=\"1\";"
+							+ "window.location.reload();"
+						+ "'>Search</button></td></tr></tbody></table>";
+
+				$("#bidarrStaffSearch").html(html);
+				$("#bidarrStaffSearch").prepend("<button onclick='$(\"#bidarrStaffSearch table\").toggle();'>Toggle Filters</button><br><br>")
 			}
 		}
 	},
