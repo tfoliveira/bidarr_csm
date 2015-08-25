@@ -1,5 +1,5 @@
 var bidarr = {
-	version: "114",
+	version: "119",
 	season_day: null,
 
 	init: function() {
@@ -12,7 +12,7 @@ var bidarr = {
 			bidarr.options.staffSearch = "0";
 		}
 
-		if (bidarr.options.staffSearch == "1") {
+		if (bidarr.options.staffSearch == "1" && bidarr.staffSearch.isStaffPage()) {
 			bidarr.staffSearch.trySearch();
 		}
 
@@ -50,6 +50,12 @@ var bidarr = {
 				localStorage[bidarr.infiniteScroll.localStorageVar] = "0";
 				bidarr.options.infiniteScroll = "0";
 			} 
+            
+            bidarr.options.pcwsReminder = localStorage[bidarr.pcwsReminder.localStorageVar];
+            if (!bidarr.options.pcwsReminder) {
+                localStorage[bidarr.pcwsReminder.localStorageVar] = "0";
+                bidarr.options.pcwsReminder = "0";
+            }
 
 			//Prepare DOM elements
 			if (bidarr.url.getVar("p") == "clan_info" && bidarr.url.getVar("s") == "edit") {
@@ -68,6 +74,8 @@ var bidarr = {
 			if (bidarr.options.staffSearch == "1") {
 				bidarr.staffSearch.putSearchingElement();
 			}
+            
+            bidarr.pcwsReminder.checkPcws();
 		} else {
 			if (bidarr.options.autoLogin == "1") {
 				bidarr.login.init();
@@ -107,6 +115,9 @@ var bidarr = {
 
 				 + '<tr><td>Staff Search:</td><td><input type="checkbox"' + ((bidarr.options.staffSearch == "1") ? " checked=checked " : " ")
 				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.staffSearch.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.staffSearch.localStorageVar + '\'] = 0;"></td></tr>'
+        
+                 + '<tr><td>Pcw\'s Reminder:</td><td><input type="checkbox"' + ((bidarr.options.pcwsReminder == "1") ? " checked=checked " : " ")
+				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.pcwsReminder.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.pcwsReminder.localStorageVar + '\'] = 0;"></td></tr>'
 
 				 + '</table></form></div><hr>';
 
@@ -118,7 +129,8 @@ var bidarr = {
 		s9: null,
 		autoLogin: null,
 		infiniteScroll: null,
-		staffSearch: null
+		staffSearch: null,
+        pcwsReminder: null
 	},
 
 
@@ -480,7 +492,7 @@ var bidarr = {
 		localStorageSearchingMomentVar: "bidarrSearchingMoment",
 
 		isStaffPage: function() {
-			if (bidarr.url.getVar("p") == "office_staff" && bidarr.url.getVar("s") == "manage") {
+			if (bidarr.url.getVar("p") == "office_staff" && (bidarr.url.getVar("s") == "manage" || bidarr.url.getVar("s") == "hire")) {
 				return true;
 			} else {
 				return false;
@@ -488,7 +500,6 @@ var bidarr = {
 		},
 
 		isSearchingEnabled: function() {
-			console.log(localStorage[bidarr.staffSearch.localStorageSearchingVar]);
 			if (localStorage[bidarr.staffSearch.localStorageSearchingVar] == "1") {
 				return true;
 			} else {
@@ -609,6 +620,7 @@ var bidarr = {
 							+ "<option value='ar'>Argentina</option>"
 							+ "<option value='at'>Austria</option>"
 							+ "<option value='be'>Belgium</option>"
+							+ "<option value='br'>Brazil</option>"
 							+ "<option value='cc'>CSM Country</option>"
 							+ "<option value='dk'>Denmark</option>"
 							+ "<option value='ee'>Estonia</option>"
@@ -669,6 +681,81 @@ var bidarr = {
 		}
 	},
 
+    pcwsReminder: {
+        localStorageVar: "bidarrPcwsReminder",
+        playedUrl: "http://www.cs-manager.com/csm/?p=game_games&s=played",
+        upcomingUrl: "http://www.cs-manager.com/csm/?p=game_games&s=upcoming",
+        today: 0,
+        todayDateString: "",
+        tomorrow: 0,
+        tomorrowDateString: "",
+        
+        isPcwsReminderEnabled: function() {
+            if (localStorage[bidarr.pcwsReminder.localStorageVar] == "1") {
+				return true;
+			} else {
+				return false;
+			}
+        },
+        
+        checkPcws: function() {
+            if (bidarr.pcwsReminder.isPcwsReminderEnabled()) {
+                var todayDate = new Date();
+                bidarr.pcwsReminder.todayDateString = todayDate.getFullYear() + "-" 
+                                + ((todayDate.getMonth() + 1) < 10 ? "0" + (todayDate.getMonth() + 1) : (todayDate.getMonth() + 1)) + "-"
+                                + todayDate.getDate();
+                
+                var tomorrowDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+                bidarr.pcwsReminder.tomorrowDateString = tomorrowDate.getFullYear() + "-" 
+                                + ((tomorrowDate.getMonth() + 1) < 10 ? "0" + (tomorrowDate.getMonth() + 1) : (tomorrowDate.getMonth() + 1)) + "-"
+                                + tomorrowDate.getDate();
+                
+                $.ajax({
+                    url: bidarr.pcwsReminder.playedUrl,
+                    success: function(data) {
+                        
+                        $("li.pcw", $(data)).find("div.match > div").each(function() {
+                            if ($(this).html().trim().substr(0, 10) == bidarr.pcwsReminder.todayDateString) {
+                                bidarr.pcwsReminder.today++;
+                            }
+                        });
+                        
+                        $.ajax({
+                            url: bidarr.pcwsReminder.upcomingUrl,
+                            success: function(data) {
+
+                                $("li.pcw", $(data)).find("div.match > div").each(function() {
+                                    if ($(this).html().trim().substr(0, 10) == bidarr.pcwsReminder.todayDateString) {
+                                        bidarr.pcwsReminder.today++;
+                                    } else if ($(this).html().trim().substr(0, 10) == bidarr.pcwsReminder.tomorrowDateString) {
+                                        bidarr.pcwsReminder.tomorrow++;
+                                    }
+                                });
+                                
+                                
+                                bidarr.pcwsReminder.insertAlertsHtml();
+                            }
+                        });
+                    }
+                });
+            }
+        },
+        
+        insertAlertsHtml: function() {
+            var show = false;
+            var message = "You have a few pcw's missing for today/tomorrow!<br>";
+            if (bidarr.pcwsReminder.today < 2 || bidarr.pcwsReminder.tomorrow < 2) {
+                show = true;
+            }
+            
+            if (show) {
+                message += "Today: " + (2 - bidarr.pcwsReminder.today) + " | Tomorrow: " + (2 - bidarr.pcwsReminder.tomorrow);
+                
+                $("#main").prepend('<span style="display: block; background-color: #F2DEDE; text-align: center; margin-bottom: 10px; width: 100%; border: 1px solid #EED3D7;">' + message + '</span>');
+            }
+        }
+    },
+    
 	url: {
 		params: {},
 
