@@ -1,5 +1,5 @@
 var bidarr = {
-	version: "114",
+	version: "118",
 	season_day: null,
 
 	init: function() {
@@ -12,7 +12,7 @@ var bidarr = {
 			bidarr.options.staffSearch = "0";
 		}
 
-		if (bidarr.options.staffSearch == "1") {
+		if (bidarr.options.staffSearch == "1" && bidarr.staffSearch.isStaffPage()) {
 			bidarr.staffSearch.trySearch();
 		}
 
@@ -480,7 +480,7 @@ var bidarr = {
 		localStorageSearchingMomentVar: "bidarrSearchingMoment",
 
 		isStaffPage: function() {
-			if (bidarr.url.getVar("p") == "office_staff" && bidarr.url.getVar("s") == "manage") {
+			if (bidarr.url.getVar("p") == "office_staff" && (bidarr.url.getVar("s") == "manage" || bidarr.url.getVar("s") == "hire")) {
 				return true;
 			} else {
 				return false;
@@ -609,6 +609,7 @@ var bidarr = {
 							+ "<option value='ar'>Argentina</option>"
 							+ "<option value='at'>Austria</option>"
 							+ "<option value='be'>Belgium</option>"
+							+ "<option value='br'>Brazil</option>"
 							+ "<option value='cc'>CSM Country</option>"
 							+ "<option value='dk'>Denmark</option>"
 							+ "<option value='ee'>Estonia</option>"
