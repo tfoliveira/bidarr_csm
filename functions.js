@@ -1,5 +1,5 @@
 var bidarr = {
-	version: "119",
+	version: "123",
 	season_day: null,
 
 	init: function() {
@@ -357,7 +357,43 @@ var bidarr = {
 					}
 				}
 			}
-		}
+		},
+        
+        s9analyzer: {
+            isBetsPage: function() {
+                if (location.href.indexOf("?p=community_betting") >= 0 && $("#form_super").length > 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+            },
+            
+            analyzeGames: function() {
+                if ($("#form_super").length > 0) {
+                    $("#form_super").find("td.bet-event").each(function() {
+                        var element = $(this);
+                        $(element).append("<table><tr class='bidarr_data'></tr></table>");
+                        $(this).find("a").each(function() {
+                            var uniqueIndex = new Date().getTime();
+                            var url = $(this).attr("href");
+
+                            $(element).find(".bidarr_data").append("<td style='text-align: left;' class='" + uniqueIndex + "'></td>");
+
+                            $.ajax({
+                                url: location.origin + url,
+                                success: function(data) {
+                                    var league = $("ul.cp-top-info li:nth-child(2) a", data).html().trim();
+                                    var rank = $("ul.cp-top-info li:nth-child(3)", data).text().trim();
+                                    var activity = $("ul.cp-top-info li:nth-child(5) img", data).attr("src");
+
+                                    $(element).find(".bidarr_data").find("." + uniqueIndex).html(league + " " + rank + "<br><img src='" + activity + "'>");
+                                }
+                            });
+                        });
+                    });
+                }
+            }
+        }
 	},
 
 	infiniteScroll: {
@@ -703,12 +739,12 @@ var bidarr = {
                 var todayDate = new Date();
                 bidarr.pcwsReminder.todayDateString = todayDate.getFullYear() + "-" 
                                 + ((todayDate.getMonth() + 1) < 10 ? "0" + (todayDate.getMonth() + 1) : (todayDate.getMonth() + 1)) + "-"
-                                + todayDate.getDate();
+                                + ((todayDate.getDate()) < 10 ? "0" + (todayDate.getDate()) : (todayDate.getDate()));
                 
                 var tomorrowDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
                 bidarr.pcwsReminder.tomorrowDateString = tomorrowDate.getFullYear() + "-" 
                                 + ((tomorrowDate.getMonth() + 1) < 10 ? "0" + (tomorrowDate.getMonth() + 1) : (tomorrowDate.getMonth() + 1)) + "-"
-                                + tomorrowDate.getDate();
+                                + ((tomorrowDate.getDate()) < 10 ? "0" + (tomorrowDate.getDate()) : (tomorrowDate.getDate()));
                 
                 $.ajax({
                     url: bidarr.pcwsReminder.playedUrl,
@@ -789,3 +825,36 @@ var bidarr = {
 };
 
 bidarr.init();
+
+
+
+
+
+
+
+
+/* ########## GET ONE PLAYER SKILLS + LIMITS ##########
+var skills = {};
+var limits = {};
+var index = 0;
+
+//to fetch for all players this should basically be changed to do a foreach on "article.player" instead
+$("#player-13652329").find(".skills-bar div.visual img").each(function() {
+  var url = $(this).attr("src");
+
+  var urlPairs = {};
+  var pairs = url.substring(url.indexOf('?') + 1).split('&');
+  for (var i = 0; i < pairs.length; i++) {
+    var pair = pairs[i].split('=');
+
+    urlPairs[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+  }
+
+  skills[index] = urlPairs.skill;
+  limits[index] = urlPairs.limit;
+  index++;
+});
+
+console.log(skills);
+console.log(limits);
+*/
