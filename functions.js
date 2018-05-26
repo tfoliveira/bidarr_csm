@@ -1,5 +1,5 @@
 var bidarr = {
-	version: "119",
+	version: "123",
 	season_day: null,
 
 	init: function() {
@@ -21,7 +21,7 @@ var bidarr = {
 		if (!bidarr.options.autoLogin) {
 			localStorage[bidarr.login.localStorageVar] = "0";
 			bidarr.options.autoLogin = "0";
-		} 
+		}
 
 		if (!bidarr.login.isLoginPage()) {
 
@@ -36,21 +36,21 @@ var bidarr = {
 			if (!bidarr.options.bet) {
 				localStorage[bidarr.bets.simple.localStorageVar] = "0";
 				bidarr.options.bet = "0";
-			} 
+			}
 
 			//Get s9 bets configs
 			bidarr.options.s9 = localStorage[bidarr.bets.s9.localStorageVar];
 			if (!bidarr.options.s9) {
 				localStorage[bidarr.bets.s9.localStorageVar] = "0";
 				bidarr.options.s9 = "0";
-			} 
+			}
 
 			bidarr.options.infiniteScroll = localStorage[bidarr.infiniteScroll.localStorageVar];
 			if (!bidarr.options.infiniteScroll) {
 				localStorage[bidarr.infiniteScroll.localStorageVar] = "0";
 				bidarr.options.infiniteScroll = "0";
-			} 
-            
+			}
+
             bidarr.options.pcwsReminder = localStorage[bidarr.pcwsReminder.localStorageVar];
             if (!bidarr.options.pcwsReminder) {
                 localStorage[bidarr.pcwsReminder.localStorageVar] = "0";
@@ -74,7 +74,7 @@ var bidarr = {
 			if (bidarr.options.staffSearch == "1") {
 				bidarr.staffSearch.putSearchingElement();
 			}
-            
+
             bidarr.pcwsReminder.checkPcws();
 		} else {
 			if (bidarr.options.autoLogin == "1") {
@@ -108,14 +108,14 @@ var bidarr = {
 				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.bets.s9.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.bets.s9.localStorageVar + '\'] = 0;"></td></tr>'
 
 				 + '<tr><td>Simple Bets Reminder:</td><td><input type="checkbox"' + ((bidarr.options.bet == "1") ? " checked=checked " : " ")
-				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.bets.simple.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.bets.simple.localStorageVar + '\'] = 0;"></td></tr>' 
+				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.bets.simple.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.bets.simple.localStorageVar + '\'] = 0;"></td></tr>'
 
 				 + '<tr><td>Transfer List Infinite Scroll:</td><td><input type="checkbox"' + ((bidarr.options.infiniteScroll == "1") ? " checked=checked " : " ")
-				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.infiniteScroll.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.infiniteScroll.localStorageVar + '\'] = 0;"></td></tr>' 
+				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.infiniteScroll.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.infiniteScroll.localStorageVar + '\'] = 0;"></td></tr>'
 
 				 + '<tr><td>Staff Search:</td><td><input type="checkbox"' + ((bidarr.options.staffSearch == "1") ? " checked=checked " : " ")
 				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.staffSearch.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.staffSearch.localStorageVar + '\'] = 0;"></td></tr>'
-        
+
                  + '<tr><td>Pcw\'s Reminder:</td><td><input type="checkbox"' + ((bidarr.options.pcwsReminder == "1") ? " checked=checked " : " ")
 				 + ' onchange="if(this.checked == true) localStorage[\'' + bidarr.pcwsReminder.localStorageVar + '\'] = 1; else localStorage[\'' + bidarr.pcwsReminder.localStorageVar + '\'] = 0;"></td></tr>'
 
@@ -151,8 +151,8 @@ var bidarr = {
 	  						$("#main #main-content table tbody > tr", $(data)).each(function() {
 	  							if (!$(this).hasClass("emphasized")) {
 	  								countries[countries.length] = {
-	  									flag: $(this).find("td:nth-child(1) img").prop("src").replace("http://www.cs-manager.com/images/flags/", "").replace(".png", ""), 
-							            name: $(this).find("td:nth-child(1) img").prop("title") 
+	  									flag: $(this).find("td:nth-child(1) img").prop("src").replace("http://www.cs-manager.com/images/flags/", "").replace(".png", ""),
+							            name: $(this).find("td:nth-child(1) img").prop("title")
 	  								};
 	  							}
 	  						});
@@ -199,7 +199,7 @@ var bidarr = {
 				} else {
 					$("#login_username").val(bidarr.login.bidarrUsername);
                 	$("#login_password").val(bidarr.login.bidarrPassword);
-                
+
                 	$("#login-form").find("div#login-buttons").find("button:first-child").trigger("click");
 				}
 			}
@@ -236,7 +236,7 @@ var bidarr = {
                     }
                 }
             });
-            
+
             $("#login_password").on("blur",function() {
         		if ($("#login_password").val().length > 0) {
                 	localStorage.bidarrPassword = bidarr.login.encrypt(bidarr_hash, $("#login_password").val());
@@ -330,12 +330,12 @@ var bidarr = {
 						case '3':
 						case '4' :
 						case '10':
-						case '11': 
+						case '11':
 						case '17':
-						case '18': 
-						case '24': 
+						case '18':
+						case '24':
 						case '25':
-						case '31': 
+						case '31':
 						case '32':
 						case '38':
 						case '39':
@@ -432,7 +432,7 @@ var bidarr = {
 							$("article.player", $(data)).each(function() {
 								var index = ((page - 1) * bidarr.infiniteScroll.qtyPerPage) + j;
 								j++;
-								
+
 								bidarr.infiniteScroll.players[index] = {
 									"dom": $(this),
 									"skills": {}
@@ -567,11 +567,11 @@ var bidarr = {
 			    			var knowledge = ($(this).find("ul > li:nth-child(8) > img").prop("src") == "http://www.cs-manager.com/images/activity_" + localStorage.bidarrStaffSearchS3 + ".gif");
 
 			    			if (nation && quality && quantity && knowledge) {
-			        			found = true; 
+			        			found = true;
 			    			}
 			    		});
 
-			    		if (!found) { 
+			    		if (!found) {
 							var aux = parseInt(localStorage[bidarr.staffSearch.localStorageSearchingMomentVar]) + 1;
 							localStorage[bidarr.staffSearch.localStorageSearchingMomentVar] = aux + "";
 
@@ -579,7 +579,7 @@ var bidarr = {
 								$("#bidarrAttempt").html(localStorage[bidarr.staffSearch.localStorageSearchingMomentVar]);
 		    					var request = this;
 
-		    					setTimeout(function(){ 
+		    					setTimeout(function(){
 		    						$.ajax(request);
 		    					}, 2000);
 							} else {
@@ -689,7 +689,7 @@ var bidarr = {
         todayDateString: "",
         tomorrow: 0,
         tomorrowDateString: "",
-        
+
         isPcwsReminderEnabled: function() {
             if (localStorage[bidarr.pcwsReminder.localStorageVar] == "1") {
 				return true;
@@ -697,29 +697,29 @@ var bidarr = {
 				return false;
 			}
         },
-        
+
         checkPcws: function() {
             if (bidarr.pcwsReminder.isPcwsReminderEnabled()) {
                 var todayDate = new Date();
-                bidarr.pcwsReminder.todayDateString = todayDate.getFullYear() + "-" 
+                bidarr.pcwsReminder.todayDateString = todayDate.getFullYear() + "-"
                                 + ((todayDate.getMonth() + 1) < 10 ? "0" + (todayDate.getMonth() + 1) : (todayDate.getMonth() + 1)) + "-"
-                                + todayDate.getDate();
-                
+                                + ((todayDate.getDate()) < 10 ? "0" + (todayDate.getDate()) : (todayDate.getDate()));
+
                 var tomorrowDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
-                bidarr.pcwsReminder.tomorrowDateString = tomorrowDate.getFullYear() + "-" 
+                bidarr.pcwsReminder.tomorrowDateString = tomorrowDate.getFullYear() + "-"
                                 + ((tomorrowDate.getMonth() + 1) < 10 ? "0" + (tomorrowDate.getMonth() + 1) : (tomorrowDate.getMonth() + 1)) + "-"
-                                + tomorrowDate.getDate();
-                
+                                + ((tomorrowDate.getDate()) < 10 ? "0" + (tomorrowDate.getDate()) : (tomorrowDate.getDate()));
+
                 $.ajax({
                     url: bidarr.pcwsReminder.playedUrl,
                     success: function(data) {
-                        
+
                         $("li.pcw", $(data)).find("div.match > div").each(function() {
                             if ($(this).html().trim().substr(0, 10) == bidarr.pcwsReminder.todayDateString) {
                                 bidarr.pcwsReminder.today++;
                             }
                         });
-                        
+
                         $.ajax({
                             url: bidarr.pcwsReminder.upcomingUrl,
                             success: function(data) {
@@ -731,8 +731,8 @@ var bidarr = {
                                         bidarr.pcwsReminder.tomorrow++;
                                     }
                                 });
-                                
-                                
+
+
                                 bidarr.pcwsReminder.insertAlertsHtml();
                             }
                         });
@@ -740,22 +740,22 @@ var bidarr = {
                 });
             }
         },
-        
+
         insertAlertsHtml: function() {
             var show = false;
             var message = "You have a few pcw's missing for today/tomorrow!<br>";
             if (bidarr.pcwsReminder.today < 2 || bidarr.pcwsReminder.tomorrow < 2) {
                 show = true;
             }
-            
+
             if (show) {
                 message += "Today: " + (2 - bidarr.pcwsReminder.today) + " | Tomorrow: " + (2 - bidarr.pcwsReminder.tomorrow);
-                
+
                 $("#main").prepend('<span style="display: block; background-color: #F2DEDE; text-align: center; margin-bottom: 10px; width: 100%; border: 1px solid #EED3D7;">' + message + '</span>');
             }
         }
     },
-    
+
 	url: {
 		params: {},
 
